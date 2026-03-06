@@ -35,3 +35,15 @@ const getOrders = async (req, res) => {
       return res.status(500).json({ error: 'Erro ao buscar pedidos' });
     }
   };
+// Atualiza o status do pedido (Permissão apenas p/ admin )
+const updateOrderStatus = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+  
+      await db.collection('orders').doc(id).update({ status });
+      return res.status(200).json({ message: 'Status atualizado com sucesso' });
+    } catch (error) {
+      return res.status(500).json({ error: 'Erro ao atualizar pedido' });
+    }
+  };
