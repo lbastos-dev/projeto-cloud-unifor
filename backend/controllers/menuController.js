@@ -1,7 +1,7 @@
 //caminho -> backend/src/controllers/menuController.js
 const { db } = require('../firebase');
 
-// Retorna todos os itens do cardapio
+// vai retornar todos os itens do cardapio
 const getMenu = async (req, res) => {
   try {
     const snapshot = await db.collection('menu').get();
