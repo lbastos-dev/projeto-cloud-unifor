@@ -47,3 +47,15 @@ const updateOrderStatus = async (req, res) => {
       return res.status(500).json({ error: 'Erro ao atualizar pedido' });
     }
   };
+  // Deleta um pedido (Apenas Admin)
+const deleteOrder = async (req, res) => {
+    try {
+      const { id } = req.params;
+      await db.collection('orders').doc(id).delete();
+      return res.status(200).json({ message: 'Pedido deletado com sucesso' });
+    } catch (error) {
+      return res.status(500).json({ error: 'Erro ao deletar pedido' });
+    }
+  };
+  
+  module.exports = { createOrder, getOrders, updateOrderStatus, deleteOrder };
