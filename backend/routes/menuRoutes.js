@@ -8,4 +8,4 @@ const router = express.Router();
 // Qualquer usuario logado pode ver o cardapio
 router.get('/', verifyToken, getMenu);
 
-module.exports = router;
+module.exports = router;    
