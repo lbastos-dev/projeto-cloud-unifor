@@ -1,0 +1,123 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "API - Sistema de Pedidos Cloud",
+      "version": "1.0.0",
+      "description": "Documentação da API do sistema de pedidos com Firebase Auth e Firestore. Projeto da disciplina de Cloud Computing."
+    },
+    "servers": [
+      {
+        "url": "http://localhost:3000",
+        "description": "Servidor Local"
+      }
+    ],
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ],
+    "paths": {
+      "/api/menu": {
+        "get": {
+          "summary": "Lista o cardápio",
+          "tags": ["Cardápio"],
+          "responses": {
+            "200": { "description": "Lista de produtos retornada com sucesso" },
+            "401": { "description": "Não autorizado (Token ausente ou inválido)" }
+          }
+        }
+      },
+      "/api/orders": {
+        "get": {
+          "summary": "Lista os pedidos",
+          "description": "Admin vê todos os pedidos. Usuário comum vê apenas os próprios.",
+          "tags": ["Pedidos"],
+          "responses": {
+            "200": { "description": "Lista de pedidos retornada com sucesso" }
+          }
+        },
+        "post": {
+          "summary": "Cria um novo pedido",
+          "tags": ["Pedidos"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "IDs dos produtos"
+                    },
+                    "total": { "type": "number" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": { "description": "Pedido criado com sucesso" }
+          }
+        }
+      },
+      "/api/orders/{id}": {
+        "patch": {
+          "summary": "Atualiza o status de um pedido (Apenas Admin)",
+          "tags": ["Pedidos (Admin)"],
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "schema": { "type": "string" },
+              "description": "ID do pedido no Firestore"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "preparando" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": { "description": "Status atualizado" },
+            "403": { "description": "Acesso negado" }
+          }
+        },
+        "delete": {
+          "summary": "Deleta um pedido (Apenas Admin)",
+          "tags": ["Pedidos (Admin)"],
+          "parameters": [
+            {
+              "in": "path",
+              "name": "id",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": { "description": "Pedido deletado" },
+            "403": { "description": "Acesso negado" }
+          }
+        }
+      }
+    }
+  }
