@@ -1,13 +1,12 @@
-// frontend/src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
-import Menu from './pages/Menu'; // NOVO: Importando a tela de cardápio
-import './App.css';
+import Menu from './pages/Menu';
+import Admin from './pages/Admin'; // Importando a tela de Admin verdadeira
 
 function App() {
   return (
     <Router>
-      <div className="app-container">
+      <div>
         <header>
           <h1>Sistema de Pedidos Cloud</h1>
         </header>
@@ -15,8 +14,8 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Login />} />
-            <Route path="/menu" element={<Menu />} /> {/* NOVO: Rota conectada */}
-            <Route path="/admin" element={<h2>Painel Admin (Em breve)</h2>} />
+            <Route path="/menu" element={<Menu />} />
+            <Route path="/admin" element={<Admin />} /> {/* Renderizando o componente de verdade */}
           </Routes>
         </main>
       </div>

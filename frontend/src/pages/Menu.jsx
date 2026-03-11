@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // NOVO
+import { signOut } from 'firebase/auth'; // NOVO
+import { auth } from '../firebase'; // NOVO
 import api from '../services/api';
 
 function Menu() {
   const [menuItems, setMenuItems] = useState([]);
   const [cart, setCart] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  
+  const navigate = useNavigate(); // NOVO: Para redirecionar após sair
 
   useEffect(() => {
     fetchMenu();
@@ -16,76 +20,76 @@ function Menu() {
     try {
       const response = await api.get('/menu');
       setMenuItems(response.data);
-      setLoading(false);
     } catch (err) {
       console.error(err);
-      setError('Erro ao carregar o cardápio. Você está logado?');
-      setLoading(false);
+      setError('Erro ao carregar o cardápio.');
     }
   };
 
   const addToCart = (item) => {
     setCart([...cart, item]);
-    setSuccessMessage(''); 
+    setSuccessMessage('');
   };
 
   const placeOrder = async () => {
     if (cart.length === 0) return;
 
-   
     const itemsIds = cart.map(item => item.id);
     const total = cart.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
 
     try {
       await api.post('/orders', { items: itemsIds, total });
       setSuccessMessage('Pedido realizado com sucesso!');
-      setCart([]); 
+      setCart([]);
     } catch (err) {
       console.error(err);
       setError('Erro ao realizar o pedido.');
     }
   };
 
+  // NOVO: Função de Logout
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/'); // Volta para a tela de Login
+    } catch (err) {
+      console.error('Erro ao sair:', err);
+    }
+  };
+
   const cartTotal = cart.reduce((acc, item) => acc + (Number(item.price) || 0), 0);
 
-  if (loading) return <p style={{ fontSize: '18px', fontWeight: 'bold' }}>Aguarde um momento</p>;
-
   return (
-    <div className="menu-container">
-      <h2>Cardápio</h2>
-      {error && <div className="error-message">{error}</div>}
-      {successMessage && <div className="success-message">{successMessage}</div>}
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Cardápio</h2>
+        <button onClick={handleLogout}>Sair</button> {/* NOVO: Botão de Sair */}
+      </div>
+      
+      {error && <p style={{color: 'red'}}>{error}</p>}
+      {successMessage && <p style={{color: 'green'}}>{successMessage}</p>}
 
-      <div className="menu-grid">
-        {menuItems.length === 0 ? (
-          <p>Nenhum item encontrado. (Adicione produtos na coleção "menu")</p>
-        ) : (
-          menuItems.map(item => (
-            <div key={item.id} className="menu-card">
-              <h3>{item.name || 'Produto Sem Nome'}</h3>
-              <p>{item.description || 'Sem descrição'}</p>
-              <p className="price">R$ {Number(item.price || 0).toFixed(2)}</p>
-              <button onClick={() => addToCart(item)} className="btn-secondary">Adicionar ao Pedido</button>
-            </div>
-          ))
-        )}
+      <div>
+        {menuItems.map(item => (
+          <div key={item.id} style={{border: '1px solid black', margin: '10px', padding: '10px'}}>
+            <h3>{item.name}</h3>
+            <p>{item.description}</p>
+            <p>R$ {Number(item.price || 0).toFixed(2)}</p>
+            <button onClick={() => addToCart(item)}>Adicionar ao Pedido</button>
+          </div>
+        ))}
       </div>
 
-      
       {cart.length > 0 && (
-        <div className="cart-container">
-          <h3>Seu Carrinho</h3>
+        <div style={{marginTop: '20px', borderTop: '2px solid black'}}>
+          <h3>Carrinho</h3>
           <ul>
             {cart.map((item, index) => (
-              <li key={index}>
-                <strong>{item.name}</strong> - R$ {Number(item.price || 0).toFixed(2)}
-              </li>
+              <li key={index}>{item.name} - R$ {Number(item.price || 0).toFixed(2)}</li>
             ))}
           </ul>
-          <p className="total">Total do Pedido: R$ {cartTotal.toFixed(2)}</p>
-          <button onClick={placeOrder} className="btn-primary" style={{ backgroundColor: '#047857' }}>
-            Finalizar Pedido
-          </button>
+          <p><strong>Total: R$ {cartTotal.toFixed(2)}</strong></p>
+          <button onClick={placeOrder}>Finalizar Pedido</button>
         </div>
       )}
     </div>

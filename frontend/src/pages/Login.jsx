@@ -1,8 +1,8 @@
-// frontend/src/pages/Login.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase'; // Importa a configuração do Firebase
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase'; // Importando a autenticação e o banco de dados
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -15,10 +15,23 @@ function Login() {
     setError('');
 
     try {
-      // Tenta logar o usuário no Firebase
-      await signInWithEmailAndPassword(auth, email, password);
-      // Se der certo, manda para a tela do cardápio
-      navigate('/menu');
+      // 1. Firebase Auth verifica e-mail e senha
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 2. Vai no Firestore checar a "identidade" desse usuário
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      // 3. A Encruzilhada: Redirecionamento Automático
+      if (userDocSnap.exists() && userDocSnap.data().role === 'admin') {
+        // Se for admin, vai direto para o Painel!
+        navigate('/admin'); 
+      } else {
+        // Se for cliente comum (ou se não tiver documento), vai pro Cardápio!
+        navigate('/menu'); 
+      }
+
     } catch (err) {
       console.error(err);
       setError('Falha ao fazer login. Verifique seu e-mail e senha.');
@@ -26,13 +39,13 @@ function Login() {
   };
 
   return (
-    <div className="form-container">
+    <div>
       <h2>Acesso ao Sistema</h2>
-      {error && <div className="error-message">{error}</div>}
+      {error && <p style={{color: 'red'}}>{error}</p>}
       
       <form onSubmit={handleLogin}>
-        <div className="input-group">
-          <label htmlFor="email">E-mail</label>
+        <div>
+          <label htmlFor="email">E-mail: </label>
           <input 
             type="email" 
             id="email"
@@ -42,8 +55,8 @@ function Login() {
           />
         </div>
         
-        <div className="input-group">
-          <label htmlFor="password">Senha</label>
+        <div>
+          <label htmlFor="password">Senha: </label>
           <input 
             type="password" 
             id="password"
@@ -53,7 +66,7 @@ function Login() {
           />
         </div>
         
-        <button type="submit" className="btn-primary">Entrar</button>
+        <button type="submit">Entrar</button>
       </form>
     </div>
   );

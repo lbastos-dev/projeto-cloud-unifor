@@ -1,11 +1,14 @@
-// frontend/src/pages/Admin.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // NOVO
+import { signOut } from 'firebase/auth'; // NOVO
+import { auth } from '../firebase'; // NOVO
 import api from '../services/api';
 
 function Admin() {
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  const navigate = useNavigate(); // NOVO: Para redirecionar após sair
 
   useEffect(() => {
     fetchOrders();
@@ -15,11 +18,9 @@ function Admin() {
     try {
       const response = await api.get('/orders');
       setOrders(response.data);
-      setLoading(false);
     } catch (err) {
       console.error(err);
-      setError('Erro ao carregar os pedidos da nuvem.');
-      setLoading(false);
+      setError('Erro ao carregar os pedidos da base de dados.');
     }
   };
 
@@ -31,42 +32,52 @@ function Admin() {
       ));
     } catch (err) {
       console.error(err);
-      alert('Erro ao atualizar o status. Verifique o console.');
+      alert('Erro ao atualizar o status do pedido. Verifique o console.');
     }
   };
 
-  if (loading) return <p style={{ fontSize: '18px', fontWeight: 'bold' }}>Carregando painel do administrador...</p>;
+  // NOVO: Função de Logout
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/'); // Volta para a tela de Login
+    } catch (err) {
+      console.error('Erro ao sair:', err);
+    }
+  };
 
   return (
-    <div className="admin-container">
-      <h2>Gestão de Pedidos</h2>
-      {error && <div className="error-message">{error}</div>}
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Painel do Administrador</h2>
+        <button onClick={handleLogout}>Sair</button> {/* NOVO: Botão de Sair */}
+      </div>
+      
+      <p>Gerencie os pedidos recebidos abaixo:</p>
+
+      {error && <p>{error}</p>}
 
       {orders.length === 0 ? (
         <p>Nenhum pedido encontrado no sistema.</p>
       ) : (
-        <div className="orders-grid">
+        <ul>
           {orders.map(order => (
-            <div key={order.id} className="order-card">
-              <div className="order-header">
-                <span className="order-id">ID: {order.id}</span>
-                <span className={`status-badge ${order.status}`}>{order.status}</span>
-              </div>
+            <li key={order.id}>
+              <p><strong>ID do Pedido:</strong> {order.id}</p>
+              <p><strong>Total:</strong> R$ {Number(order.total || 0).toFixed(2)}</p>
+              <p><strong>Status Atual:</strong> {order.status}</p>
               
-              <p className="order-total">Total: R$ {Number(order.total || 0).toFixed(2)}</p>
-              
-              <div className="status-actions">
-                <p>Mudar status para:</p>
-                <div className="btn-group">
-                  <button onClick={() => updateStatus(order.id, 'pendente')} className="btn-status">Pendente</button>
-                  <button onClick={() => updateStatus(order.id, 'preparando')} className="btn-status">Preparando</button>
-                  <button onClick={() => updateStatus(order.id, 'enviado')} className="btn-status">Enviado</button>
-                  <button onClick={() => updateStatus(order.id, 'entregue')} className="btn-status entregue">Entregue</button>
-                </div>
+              <div>
+                <span>Alterar status para: </span>
+                <button onClick={() => updateStatus(order.id, 'pendente')}>Pendente</button>
+                <button onClick={() => updateStatus(order.id, 'preparando')}>Preparando</button>
+                <button onClick={() => updateStatus(order.id, 'enviado')}>Enviado</button>
+                <button onClick={() => updateStatus(order.id, 'entregue')}>Entregue</button>
               </div>
-            </div>
+              <hr />
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
