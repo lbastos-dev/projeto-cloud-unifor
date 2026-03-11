@@ -5,12 +5,12 @@ const { verifyToken, isAdmin } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
-// Criar e listar pedidos (Acesso basico)
+// Criar e listar pedidos 
 router.post('/', verifyToken, createOrder);
 router.get('/', verifyToken, getOrders);
 
-// Atualizar e deletar pedidos (Restrito a Admin)
-router.patch('/:id', verifyToken, isAdmin, updateOrderStatus);
+// Atualizar e deletar pedidos 
+router.put('/:id', verifyToken, isAdmin, updateOrderStatus);
 router.delete('/:id', verifyToken, isAdmin, deleteOrder);
 
 module.exports = router;
