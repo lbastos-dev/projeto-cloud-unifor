@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // NOVO
-import { signOut } from 'firebase/auth'; // NOVO
-import { auth } from '../firebase'; // NOVO
+import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 import api from '../services/api';
 
 function Admin() {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState('');
   
-  const navigate = useNavigate(); // NOVO: Para redirecionar após sair
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchOrders();
@@ -36,11 +36,26 @@ function Admin() {
     }
   };
 
-  // NOVO: Função de Logout
+  // Função deletar pedido
+  const deleteOrder = async (orderId) => {
+    const confirmDelete = window.confirm("Tem certeza que deseja apagar este pedido do banco de dados?");
+    
+    if (confirmDelete) {
+      try {
+        await api.delete(`/orders/${orderId}`);
+        // Atualiza a tela localmente removendo o pedido deletado
+        setOrders(orders.filter(order => order.id !== orderId));
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao deletar o pedido. Verifique o console.');
+      }
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/'); // Volta para a tela de Login
+      navigate('/');
     } catch (err) {
       console.error('Erro ao sair:', err);
     }
@@ -50,7 +65,7 @@ function Admin() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Painel do Administrador</h2>
-        <button onClick={handleLogout}>Sair</button> {/* NOVO: Botão de Sair */}
+        <button onClick={handleLogout}>Sair</button>
       </div>
       
       <p>Gerencie os pedidos recebidos abaixo:</p>
@@ -73,6 +88,11 @@ function Admin() {
                 <button onClick={() => updateStatus(order.id, 'preparando')}>Preparando</button>
                 <button onClick={() => updateStatus(order.id, 'enviado')}>Enviado</button>
                 <button onClick={() => updateStatus(order.id, 'entregue')}>Entregue</button>
+              </div>
+
+              {/* Botão de excluir */}
+              <div style={{ marginTop: '10px' }}>
+                <button onClick={() => deleteOrder(order.id)}>Excluir Pedido</button>
               </div>
               <hr />
             </li>
