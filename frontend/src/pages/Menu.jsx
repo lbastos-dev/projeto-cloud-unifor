@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // NOVO
-import { signOut } from 'firebase/auth'; // NOVO
-import { auth } from '../firebase'; // NOVO
+import { useNavigate } from 'react-router-dom'; 
+import { signOut } from 'firebase/auth'; 
+import { auth } from '../firebase'; 
 import api from '../services/api';
 
 function Menu() {
@@ -10,7 +10,7 @@ function Menu() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   
-  const navigate = useNavigate(); // NOVO: Para redirecionar após sair
+  const navigate = useNavigate(); // redirecionar após sair
 
   useEffect(() => {
     fetchMenu();
@@ -47,7 +47,7 @@ function Menu() {
     }
   };
 
-  // NOVO: Função de Logout
+  // Função de logout
   const handleLogout = async () => {
     try {
       await signOut(auth);

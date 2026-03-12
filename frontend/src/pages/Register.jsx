@@ -1,43 +1,49 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
-function Login() {
+function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDocSnap = await getDoc(userDocRef);
+      // Salva o usuário no Firestore como cliente comum (role: 'user')
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        role: 'user',
+        createdAt: new Date()
+      });
 
-      if (userDocSnap.exists() && userDocSnap.data().role === 'admin') {
-        navigate('/admin'); 
-      } else {
-        navigate('/menu'); 
-      }
+      navigate('/menu'); // Manda pro cardápio após o sucesso
     } catch (err) {
       console.error(err);
-      setError('E-mail ou senha incorretos.');
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Esse e-mail já está cadastrado.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('A senha deve ter pelo menos 6 caracteres.');
+      } else {
+        setError('Ocorreu um erro ao criar a conta.');
+      }
     }
   };
 
   return (
     <div>
-      <h2>Acesso ao Sistema</h2>
+      <h2>Criar Nova Conta</h2>
       {error && <p style={{color: 'red'}}>{error}</p>}
       
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleRegister}>
         <div>
           <label htmlFor="email">E-mail: </label>
           <input 
@@ -57,21 +63,21 @@ function Login() {
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
             required 
+            minLength="6"
           />
         </div>
         
-        <button type="submit">Entrar</button>
+        <button type="submit">Cadastrar</button>
       </form>
 
-      {/* Botão p/ pagina de cadastro */}
       <div style={{ marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
-        <p>Ainda não tem uma conta?</p>
-        <button type="button" onClick={() => navigate('/cadastro')}>
-          Cadastre-se aqui
+        <p>Já tem uma conta?</p>
+        <button type="button" onClick={() => navigate('/')}>
+          Voltar para o Login
         </button>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default Register;
