@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
+import Register from './pages/Register'; // NOVO: Importando a tela de cadastro
 import Menu from './pages/Menu';
-import Admin from './pages/Admin'; // Importando a tela de Admin verdadeira
+import Admin from './pages/Admin';
 
 function App() {
   return (
@@ -14,8 +15,9 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/cadastro" element={<Register />} /> {/* NOVO: Rota do cadastro */}
             <Route path="/menu" element={<Menu />} />
-            <Route path="/admin" element={<Admin />} /> {/* Renderizando o componente de verdade */}
+            <Route path="/admin" element={<Admin />} />
           </Routes>
         </main>
       </div>
